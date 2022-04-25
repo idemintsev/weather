@@ -4,12 +4,28 @@
 
         <tr>
           <tb>
-            <select name="date" style="height:36px; width:14%">
-                <option selected=""></option>
-              {%for el in date %}
-                <option value="{{ el | date:'Y-m-d'}}">{{ el | date:"Y-m-d" }}</option>
-              {% endfor %}
-            </select>
+            <input type="text" name="datefilter" value="" autocomplete="off" placeholder="Выберите период..."
+                   style="height:36px; width:16%" />
+            <script type="text/javascript">
+              $(function() {
+
+                $('input[name="datefilter"]').daterangepicker({
+                    autoUpdateInput: false,
+                    locale: {
+                        cancelLabel: 'Clear'
+                    }
+                });
+
+                $('input[name="datefilter"]').on('apply.daterangepicker', function(ev, picker) {
+                    $(this).val(picker.startDate.format('YYYY-MM-DD') + ' / ' + picker.endDate.format('YYYY-MM-DD'));
+                });
+
+                $('input[name="datefilter"]').on('cancel.daterangepicker', function(ev, picker) {
+                    $(this).val('');
+                });
+
+              });
+              </script>
           </tb>
           <tb>
             <select name="time" style="height:36px; width:8%">
@@ -20,7 +36,7 @@
             </select>
           </tb>
           <tb>
-            <select name="city" style="height:36px; width:21%">
+            <select name="city" style="height:36px; width:21%" >
               <option selected=""></option>
               {%for el in city %}
                 <option value="{{ el }}">{{ el }}</option>

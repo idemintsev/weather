@@ -65,6 +65,10 @@ class WeatherListView(BaseWeather, ListView):
 
     def _get_filter_values_from_request(self) -> dict:
         filter_params = {key: value for key, value in self.request.GET.items() if bool(len(value))}
+        if 'datefilter' in filter_params:
+            datefilter = filter_params.pop('datefilter', '').replace(' ', '')
+            date = datefilter.split('/')
+            filter_params.update(date__range=date)
         filter_params.pop('sorted_by', None)
         return filter_params
 
@@ -113,35 +117,40 @@ class WeatherDeleteView(BaseWeather, DeleteView):
 
 class DashboardView(View):
     def get(self, request, *args, **kwargs):
-        date, temperature, city = self._get_values_from_queryset_for_filter()
+        date_for_filter, temperature_for_filter, city_for_filter = self._get_values_from_queryset_for_filter()
 
         if request.GET.get('sorted_by', None):
             filter_params = {key: value for key, value in self.request.GET.items() if bool(len(value))}
+            if 'datefilter' in filter_params:
+                datefilter = filter_params.pop('datefilter', '').replace(' ', '')
+                date = datefilter.split('/')
+                filter_params.update(date__range=date)
+
             filter_params.pop('sorted_by')
 
             weather = Weather.objects.filter(**filter_params)
             weather_dates = []
             weather_temperatures = []
-            city_for_filter = ''
+            city = ''
 
             for _data in weather:
                 weather_dates.append(f'{_data.date} {_data.time}:00')
                 weather_temperatures.append(f'{int(_data.temperature)}')
-                city_for_filter = _data.city
+                city = _data.city
 
             return render(
                 request,
                 'web_app/dashboard.html',
                 {
                     'menu': MAIN_MENU,
-                    'date': date,
-                    'temperature': temperature,
-                    'city': city,
+                    'date': date_for_filter,
+                    'temperature': temperature_for_filter,
+                    'city': city_for_filter,
                     'data': json.dumps(
                         {
                             'title': 'Дашборд для погоды',
                             'date': weather_dates,
-                            'city': city_for_filter,
+                            'city': city,
                             'temperature': weather_temperatures
                         })
                 }
@@ -152,9 +161,9 @@ class DashboardView(View):
             'web_app/dashboard.html',
             {'content': 'Выберете город и дату для отображения графика',
              'menu': MAIN_MENU,
-             'date': date,
-             'temperature': temperature,
-             'city': city,
+             'date': date_for_filter,
+             'temperature': temperature_for_filter,
+             'city': city_for_filter,
              }
         )
 
