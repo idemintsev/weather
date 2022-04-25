@@ -284,15 +284,16 @@ class WeatherJsonView(View):
         if len(all_parameters_in_url) > 1:
             all_parameters_in_url = all_parameters_in_url[1].split('&')
             # get parameters with values
-            parameters_with_values = [el.split('=') for el in all_parameters_in_url if el.split('=')[1]]
-            # create dict with parameters
-            parameters = {el[0]: el[1] for el in parameters_with_values}
-            # solve problem with cyrillic
-            if 'city' in parameters:
-                parameters['city'] = parse.unquote(parameters['city'], encoding='utf-8')
-            if 'weather' in parameters:
-                parameters['weather'] = parse.unquote(parameters['weather'], encoding='utf-8')
-        return parameters
+            if bool(len(all_parameters_in_url[0])):
+                parameters_with_values = [el.split('=') for el in all_parameters_in_url if el.split('=')[1]]
+                # create dict with parameters
+                parameters = {el[0]: el[1] for el in parameters_with_values}
+                # solve problem with cyrillic
+                if 'city' in parameters:
+                    parameters['city'] = parse.unquote(parameters['city'], encoding='utf-8')
+                if 'weather' in parameters:
+                    parameters['weather'] = parse.unquote(parameters['weather'], encoding='utf-8')
+            return parameters
 
 
 class ImportJsonInfoView(View):
