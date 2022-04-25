@@ -1,0 +1,36 @@
+    <table style="width: 70%;">
+      <tbody>
+        <form method="get">
+
+        <tr>
+          <tb>
+            <select name="date" style="height:36px; width:14%">
+                <option selected=""></option>
+              {%for el in date %}
+                <option value="{{ el | date:'Y-m-d'}}">{{ el | date:"Y-m-d" }}</option>
+              {% endfor %}
+            </select>
+          </tb>
+          <tb>
+            <select name="city" style="height:36px; width:21%">
+              <option selected=""></option>
+              {%for el in city %}
+                <option value="{{ el }}">{{ el }}</option>
+              {% endfor %}
+            </select>
+          </tb>
+          <tb>
+            <input type="submit" name="sorted_by" value="Фильтровать" class="btn btn-info">
+          </tb>
+        </form>
+          <tb>
+            <form action="{% url 'dashboard' %}" method="get">
+              <input type="submit" value="Сбросить фильтры" class="btn btn-secondary">
+            </form>
+          </tb>
+        </tr>
+
+      </tbody>
+    </table>
+
+

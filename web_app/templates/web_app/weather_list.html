@@ -1,0 +1,44 @@
+{% extends 'web_app/base.html' %}
+
+{% block content %}
+<div class="container">
+  {% include 'web_app/filter.html' %}
+  {% if weather_list %}
+  <form target="_blank" action="{% url 'import_data' %}?date={{ request.GET.date }}&time={{ request.GET.time }}&
+    city={{ request.GET.city }}&temperature={{ request.GET.temperature }}&
+    weather={{ request.GET.weather }}" method="get">
+    <input type="submit" value="Предоставить в формате JSON" class="btn btn-info">
+  </form>
+
+  <table style="width: 70%;">
+    <thead>
+      <tr>
+        <td><b>Дата</b></td>
+        <td><b>Время</b></td>
+        <td><b>Город</b></td>
+        <td><b>Градусы</b></td>
+        <td><b>Погода</b></td>
+      </tr>
+    </thead>
+    <tbody>
+      {% for weather in weather_list %}
+        <tr>
+          <td>{{ weather.date | date:"Y-m-d" }}</td>
+          <td>{{ weather.time }}:00</td>
+          <td>{{ weather.city }}</td>
+          <td>{{ weather.temperature }}</td>
+          <td>{{ weather.weather }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p>Нет данных о погоде.</p>
+    <p>Хотите загрузить данные из
+      <a href="{% url 'import_data' %}">файла</a> или ввести
+      <a href="{% url 'weather_create' %}">вручную</a>
+      ?</p>
+  {% endif %}
+
+</div>
+{% endblock content %}

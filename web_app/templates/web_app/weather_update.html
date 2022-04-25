@@ -1,0 +1,68 @@
+{% extends 'web_app/base.html' %}
+
+{% block content %}
+  <div class="container">
+    <form method="post">
+      {% csrf_token %}
+        <div class="col-md-8 col-md-offset-2">
+          <div class="panel panel-default">
+
+            <div class="panel-heading">Добавление данных о погоде</div>
+            <br>
+              {% if form.errors %}
+                <p style="color: red;">Часть данных заполненна некорректно</p>
+                {{ form.errors }}
+              {% endif %}
+
+              <div class="panel-body">
+                <div class="form-group clearfix">
+                  <label class="col-md-4 control-label text-right">Дата:</label>
+                    <div class="col-md-6">
+                      {{ form.date }}
+                    </div>
+                </div>
+
+                <div class="form-group clearfix">
+                  <label class="col-md-4 control-label text-right">Время:</label>
+                    <div class="col-md-6">
+                      {{ form.time }}
+                    </div>
+                </div>
+
+                <div class="form-group clearfix">
+                  <label class="col-md-4 control-label text-right">Город:</label>
+                    <div class="col-md-6">
+                      {{ form.city }}
+                    </div>
+                </div>
+
+                <div class="form-group clearfix">
+                  <label class="col-md-4 control-label text-right">Температура:</label>
+                    <div class="col-md-6">
+                      {{ form.temperature }}
+                    </div>
+                </div>
+
+                <div class="form-group clearfix">
+                  <label class="col-md-4 control-label text-right">Характер погоды:</label>
+                    <div class="col-md-6">
+                      {{ form.weather }}
+                    </div>
+                </div>
+
+                <br>
+                <div class="col-md-6 col-md-offset-4">
+                  <input type="submit" value="Сохранить" class="btn btn-success">
+                </div>
+              </div>
+            </div>
+        </div>
+    </form>
+  <br>
+  <p>
+    <a href="{% url 'editor' %}">Назад</a>
+  </p>
+  </div>
+
+
+{% endblock content %}
