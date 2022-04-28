@@ -119,6 +119,9 @@ class WeatherDeleteView(BaseWeather, DeleteView):
 class DashboardView(View):
     def get(self, request, *args, **kwargs):
         date_for_filter, temperature_for_filter, city_for_filter = self._get_values_from_queryset_for_filter()
+        context = {
+            'menu': MAIN_MENU, 'date': date_for_filter, 'city': city_for_filter, 'temperature': temperature_for_filter
+        }
 
         if request.GET.get('sorted_by', None):
             filter_params = {key: value for key, value in self.request.GET.items() if bool(len(value))}
@@ -139,34 +142,15 @@ class DashboardView(View):
                 weather_temperatures.append(f'{int(_data.temperature)}')
                 city = _data.city
 
-            return render(
-                request,
-                'web_app/dashboard.html',
-                {
-                    'menu': MAIN_MENU,
-                    'date': date_for_filter,
-                    'temperature': temperature_for_filter,
-                    'city': city_for_filter,
-                    'data': json.dumps(
-                        {
+            data = json.dumps({
                             'title': 'Дашборд для погоды',
                             'date': weather_dates,
                             'city': city,
                             'temperature': weather_temperatures
                         })
-                }
-            )
+            context['data'] = data
 
-        return render(
-            request,
-            'web_app/dashboard.html',
-            {'content': 'Выберете город и дату для отображения графика',
-             'menu': MAIN_MENU,
-             'date': date_for_filter,
-             'temperature': temperature_for_filter,
-             'city': city_for_filter,
-             }
-        )
+        return render(request, 'web_app/dashboard.html', context)
 
     def _update_context(self, context):
         date, time, city, temperature, weather = self._get_values_from_queryset_for_filter(context)
@@ -276,10 +260,7 @@ class WeatherJsonView(View):
             return WeatherCheckResult(False, {'message': str(err)})
 
         else:
-            if temperature > 0 and weather == 'Снег':
-                return WeatherCheckResult(False, {'message': f'Некорректные данные {temperature} {weather}'})
-
-            if temperature < 0 and weather == 'Дождь':
+            if temperature > 0 and weather == 'Снег' or temperature < 0 and weather == 'Дождь':
                 return WeatherCheckResult(False, {'message': f'Некорректные данные {temperature} {weather}'})
 
             return WeatherCheckResult(True, '')
