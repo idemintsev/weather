@@ -11,7 +11,6 @@
 
 <script>
 var data = JSON.parse ("{{data | escapejs}}");
-console.log(data.temperature)
 document.addEventListener('DOMContentLoaded', function () {
         const chart = Highcharts.chart('container_dashboard', {
             chart: {

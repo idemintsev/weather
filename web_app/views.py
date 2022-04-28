@@ -1,7 +1,8 @@
 import json
-from typing import Tuple, List
-from urllib import parse
+import urllib.parse as urlparse
 from collections import namedtuple, defaultdict
+from typing import Tuple, List
+from urllib.parse import parse_qs
 
 from django.core.serializers import serialize
 from django.http import HttpResponseNotFound, JsonResponse
@@ -190,10 +191,10 @@ class WeatherJsonView(View):
 
         filter_parameters = self._get_filter_params_from_url()
         if filter_parameters:
-            if 'All cities' in filter_parameters.values():
-                filter_parameters.pop('city')
-            if 'sorted_by' in filter_parameters:
-                filter_parameters.pop('sorted_by')
+            if 'All cities' in filter_parameters.get('city__in', []):
+                filter_parameters.pop('city__in')
+            if 'sorted_by__in' in filter_parameters:
+                filter_parameters.pop('sorted_by__in')
 
             weather = Weather.objects.filter(**filter_parameters)
         else:
@@ -287,22 +288,12 @@ class WeatherJsonView(View):
         '''
         Converts HTTP_REFERER to dictionary with filter params
         '''
-        parameters = {}
         # check that URL has extra parameters and get all parameters from URL
-        all_parameters_in_url = self.request.META['HTTP_REFERER'].split('?')
-        if len(all_parameters_in_url) > 1:
-            all_parameters_in_url = all_parameters_in_url[1].split('&')
-            # get parameters with values
-            if bool(len(all_parameters_in_url[0])):
-                parameters_with_values = [el.split('=') for el in all_parameters_in_url if el.split('=')[1]]
-                # create dict with parameters
-                parameters = {el[0]: el[1] for el in parameters_with_values}
-                # solve problem with cyrillic
-                if 'city' in parameters:
-                    parameters['city'] = parse.unquote(parameters['city'], encoding='utf-8')
-                if 'weather' in parameters:
-                    parameters['weather'] = parse.unquote(parameters['weather'], encoding='utf-8')
-            return parameters
+        url = self.request.META['HTTP_REFERER']
+        parsed = urlparse.urlparse(url)
+        parameters = parse_qs(parsed.query)
+        parameters = {f'{k}__in': v for k, v in parameters.items()}
+        return parameters
 
 
 class ImportJsonInfoView(View):
