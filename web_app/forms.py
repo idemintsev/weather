@@ -25,9 +25,7 @@ class BaseCreateForm(forms.ModelForm):
 
     @staticmethod
     def _is_weather_type_correct(weather_type: str, temperature: int) -> bool:
-        if temperature > 0 and weather_type == 'Снег':
-            return False
-        elif temperature < 0 and weather_type == 'Дождь':
+        if temperature > 0 and weather_type == 'Снег' or temperature < 0 and weather_type == 'Дождь':
             return False
         return True
 
