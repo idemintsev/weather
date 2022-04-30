@@ -11,31 +11,56 @@
 
 <script>
 var data = JSON.parse ("{{data | escapejs}}");
-document.addEventListener('DOMContentLoaded', function () {
-        const chart = Highcharts.chart('container_dashboard', {
-            chart: {
-                type: 'bar'
-            },
-            title: {
-                text: data.title
-            },
-            xAxis: {
-                categories: data.date
-            },
-            yAxis: {
-                title: {
-                    text: 'Температура'
-                }
-            },
-            series: [{
-                name: data.city,
-                data: data.temperature.map(i=>Number(i))
-            },
-            ]
-        });
-    });
-
-</script>
-
+Highcharts.chart('container_dashboard', {
+  chart: {
+    type: 'spline'
+  },
+  title: {
+    text: data.title
+  },
+  subtitle: {
+    text: data.subtitle
+  },
+  xAxis: {
+    title: {
+      text: 'Даты'
+    },
+    categories: data.date,
+    accessibility: {
+      description: 'Months of the year'
+    }
+  },
+  yAxis: {
+    title: {
+      text: 'Температура'
+    },
+    labels: {
+      formatter: function () {
+        return this.value + '°';
+      }
+    }
+  },
+  tooltip: {
+    crosshairs: true,
+    shared: true
+  },
+  plotOptions: {
+    spline: {
+      marker: {
+        radius: 4,
+        lineColor: '#666666',
+        lineWidth: 1
+      }
+    }
+  },
+  series: [{
+    name: data.city,
+    marker: {
+      symbol: 'square'
+    },
+    data: data.temperature.map(i=>Number(i))
+  },
+]
+});</script>
 
 {% endblock content %}

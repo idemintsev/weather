@@ -143,7 +143,8 @@ class DashboardView(View):
                 city = _data.city
 
             data = json.dumps({
-                            'title': 'Дашборд для погоды',
+                            'title': 'График погоды',
+                            'subtitle': f'Для города {city}',
                             'date': weather_dates,
                             'city': city,
                             'temperature': weather_temperatures
