@@ -133,25 +133,42 @@ class DashboardView(View):
 
         return render(request, 'web_app/dashboard.html', context)
 
-    def _get_weather_data_in_json(self, context: dict, filter_params: dict):
+    @staticmethod
+    def _get_weather_data_in_json(context: dict, filter_params: dict) -> None:
         weather = Weather.objects.filter(**filter_params)
         weather_dates = []
         weather_temperatures = []
         city = ''
-        for _data in weather:
-            weather_dates.insert(0, f'{_data.date} {_data.time}:00')
-            weather_temperatures.insert(0, f'{int(_data.temperature)}')
-            city = _data.city
-        data = json.dumps({
-            'title': 'График погоды',
-            'subtitle': f'Для города {city}',
-            'date': weather_dates,
-            'city': city,
-            'temperature': weather_temperatures
-        })
-        context['data'] = data
+        if weather:
+            for _data in weather:
+                weather_dates.insert(0, f'{_data.date} {_data.time}:00')
+                weather_temperatures.insert(0, f'{int(_data.temperature)}')
+                city = _data.city
+            data = json.dumps({
+                'title': 'График погоды',
+                'subtitle': f'Для города {city}',
+                'date': weather_dates,
+                'city': city,
+                'temperature': weather_temperatures
+            })
+            context['data'] = data
+        else:
+            start_date, end_date = '...', '...'
+            date_range = filter_params.get("date__range", None)
 
-    def _get_filter_params(self):
+            if date_range:                           # list in format ['2022-01-31', '2022-04-30']
+                start_date, end_date = date_range
+            data = json.dumps({
+                'title': 'График погоды',
+                'subtitle': f'Для города {filter_params.get("city", None)} за период '
+                            f'{start_date} по {end_date} данных не найдено',
+                'date': [],
+                'city': '',
+                'temperature': []
+            })
+            context['data'] = data
+
+    def _get_filter_params(self) -> dict:
         filter_params = {key: value for key, value in self.request.GET.items() if value}
         if 'datefilter' in filter_params:
             datefilter = filter_params.pop('datefilter', '').replace(' ', '')
