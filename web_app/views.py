@@ -33,6 +33,10 @@ class MainPageView(View):
 class BaseWeather:
     model = Weather
 
+    def _add_menu_in_context(self, context):
+        context['menu'] = MAIN_MENU
+        return context
+
 
 class WeatherListView(BaseWeather, ListView):
     template_name = 'web_app/weather_list.html'
@@ -65,7 +69,7 @@ class WeatherListView(BaseWeather, ListView):
                sorted(list(weather))
 
     def _get_filter_values_from_request(self) -> dict:
-        filter_params = {key: value for key, value in self.request.GET.items() if bool(len(value))}
+        filter_params = {key: value for key, value in self.request.GET.items() if value}
         if 'datefilter' in filter_params:
             datefilter = filter_params.pop('datefilter', '').replace(' ', '')
             date = datefilter.split('/')
@@ -80,7 +84,7 @@ class WeatherListView(BaseWeather, ListView):
             if 'All cities' in filter_params.values():
                 # remove because we will not need this value for getting queryset
                 filter_params.pop('city')
-            queryset = Weather.objects.filter(
+            queryset = queryset.filter(
                 **filter_params,
             )
             return queryset
@@ -118,56 +122,50 @@ class WeatherDeleteView(BaseWeather, DeleteView):
 
 class DashboardView(View):
     def get(self, request, *args, **kwargs):
-        date_for_filter, temperature_for_filter, city_for_filter = self._get_values_from_queryset_for_filter()
-        context = {
-            'menu': MAIN_MENU, 'date': date_for_filter, 'city': city_for_filter, 'temperature': temperature_for_filter
-        }
+        city_for_filter = self._get_city_for_filter()
+        context = {'menu': MAIN_MENU, 'city': city_for_filter}
 
         if request.GET.get('sorted_by', None):
-            filter_params = {key: value for key, value in self.request.GET.items() if bool(len(value))}
-            if 'datefilter' in filter_params:
-                datefilter = filter_params.pop('datefilter', '').replace(' ', '')
-                date = datefilter.split('/')
-                filter_params.update(date__range=date)
+            filter_params = self._get_filter_params()
 
-            filter_params.pop('sorted_by')
-
-            weather = Weather.objects.filter(**filter_params)
-            weather_dates = []
-            weather_temperatures = []
-            city = ''
-
-            for _data in weather:
-                weather_dates.append(f'{_data.date} {_data.time}:00')
-                weather_temperatures.append(f'{int(_data.temperature)}')
-                city = _data.city
-
-            data = json.dumps({
-                            'title': 'График погоды',
-                            'subtitle': f'Для города {city}',
-                            'date': weather_dates,
-                            'city': city,
-                            'temperature': weather_temperatures
-                        })
-            context['data'] = data
+            if filter_params:
+                self._get_weather_data_in_json(context, filter_params)
 
         return render(request, 'web_app/dashboard.html', context)
 
-    def _update_context(self, context):
-        date, time, city, temperature, weather = self._get_values_from_queryset_for_filter(context)
-        context.update(date=date, time=time, city=city, temperature=temperature, weather=weather)
+    def _get_weather_data_in_json(self, context: dict, filter_params: dict):
+        weather = Weather.objects.filter(**filter_params)
+        weather_dates = []
+        weather_temperatures = []
+        city = ''
+        for _data in weather:
+            weather_dates.insert(0, f'{_data.date} {_data.time}:00')
+            weather_temperatures.insert(0, f'{int(_data.temperature)}')
+            city = _data.city
+        data = json.dumps({
+            'title': 'График погоды',
+            'subtitle': f'Для города {city}',
+            'date': weather_dates,
+            'city': city,
+            'temperature': weather_temperatures
+        })
+        context['data'] = data
 
-    def _get_values_from_queryset_for_filter(self) -> Tuple:
+    def _get_filter_params(self):
+        filter_params = {key: value for key, value in self.request.GET.items() if value}
+        if 'datefilter' in filter_params:
+            datefilter = filter_params.pop('datefilter', '').replace(' ', '')
+            date = datefilter.split('/')
+            filter_params.update(date__range=date)
+        filter_params.pop('sorted_by')
+        return filter_params
+
+    def _get_city_for_filter(self) -> Tuple:
         '''
         Get unique values for filter checkboxes in template filter.html.
         '''
-        date, time, city, = set(), set(), set()
-        qset = Weather.objects.all()
-        for el in qset:
-            date.add(el.date)
-            time.add(el.time)
-            city.add(el.city)
-        return sorted(list(date)), sorted(list(time)), sorted(list(city))
+        city = Weather.objects.values_list('city', flat=True).order_by('city').distinct('city')
+        return tuple(city)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -251,7 +249,7 @@ class WeatherJsonView(View):
                 date__in=date,
                 time__in=time,
             )
-            return not (bool(len(weather_from_db)))
+            return not weather_from_db
 
     def _is_temperature_and_weather_correct(self, temperature: str, weather: str) -> namedtuple:
         WeatherCheckResult = namedtuple('WeatherCheckResult', 'status message')

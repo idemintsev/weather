@@ -10,57 +10,59 @@
 <div id="container_dashboard" style="width:100%; height:400px;"></div>
 
 <script>
-var data = JSON.parse ("{{data | escapejs}}");
-Highcharts.chart('container_dashboard', {
-  chart: {
-    type: 'spline'
-  },
-  title: {
-    text: data.title
-  },
-  subtitle: {
-    text: data.subtitle
-  },
-  xAxis: {
-    title: {
-      text: 'Даты'
+  var data = JSON.parse ("{{data | escapejs}}");
+
+  Highcharts.chart('container_dashboard', {
+    chart: {
+      type: 'spline'
     },
-    categories: data.date,
-    accessibility: {
-      description: 'Months of the year'
-    }
-  },
-  yAxis: {
     title: {
-      text: 'Температура'
+      text: data.title
     },
-    labels: {
-      formatter: function () {
-        return this.value + '°';
+    subtitle: {
+      text: data.subtitle
+    },
+    xAxis: {
+      title: {
+        text: 'Даты'
+      },
+      categories: data.date,
+      accessibility: {
+        description: 'Months of the year'
       }
-    }
-  },
-  tooltip: {
-    crosshairs: true,
-    shared: true
-  },
-  plotOptions: {
-    spline: {
+    },
+    yAxis: {
+      title: {
+        text: 'Температура'
+      },
+      labels: {
+        formatter: function () {
+          return this.value + '°';
+        }
+      }
+    },
+    tooltip: {
+      crosshairs: true,
+      shared: true
+    },
+    plotOptions: {
+      spline: {
+        marker: {
+          radius: 4,
+          lineColor: '#666666',
+          lineWidth: 1
+        }
+      }
+    },
+    series: [{
+      name: data.city,
       marker: {
-        radius: 4,
-        lineColor: '#666666',
-        lineWidth: 1
-      }
-    }
-  },
-  series: [{
-    name: data.city,
-    marker: {
-      symbol: 'square'
+        symbol: 'square'
+      },
+      data: data.temperature.map(i=>Number(i))
     },
-    data: data.temperature.map(i=>Number(i))
-  },
-]
-});</script>
+  ]
+  });
+</script>
 
 {% endblock content %}
