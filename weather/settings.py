@@ -9,11 +9,11 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 SECRET_KEY = config.get('SECRET_KEY', None)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config.get("DEBUG", False)
+DEBUG = bool(int(config.get('DEBUG', 0)))
 
-ALLOWED_HOSTS = config.get("ALLOWED_HOSTS").split(" ")
+ALLOWED_HOSTS = config.get('ALLOWED_HOSTS').split(' ')
 
-HOSTNAME = '127.0.0.1:8000/'
+HOSTNAME = config.get('HOSTNAME')
 
 # Application definition
 
@@ -69,6 +69,8 @@ DATABASES = {
         'PASSWORD': config.get('PASSWORD', False),
         'HOST': config.get('HOST', False),
         'PORT': config.get('PORT', False),
+        'DEFAULT_TRANSACTION_ISOLATION': config.get('DB_DEFAULT_TRANSACTION_ISOLATION'),
+        'ATOMIC_TRANSACTION': bool(int(config.get('DB_ATOMIC_TRANSACTION'))),
     }
 }
 
